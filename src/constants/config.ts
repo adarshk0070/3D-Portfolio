@@ -4,6 +4,26 @@ type TSection = {
   content?: string;
 };
 
+type TProfile = {
+  name: string;
+  role: string;
+  profileImage: string;
+  shortBio: string;
+  email: string;
+  phone: string;
+  location: string;
+  resumeLink: string;
+  tagline: string;
+  status: string;
+  social: {
+    github: string;
+    linkedin: string;
+    leetcode: string;
+    hackerrank?: string;
+    portfolio?: string;
+  };
+};
+
 type TConfig = {
   html: {
     title: string;
@@ -35,6 +55,7 @@ type TConfig = {
     experience: TSection;
     works: Required<TSection>;
   };
+  profile: TProfile;
 };
 
 export const config: TConfig = {
@@ -101,5 +122,24 @@ contact: {
   solve real-world problems with scalable and production-ready solutions.`,
 },
 
-}
+},
+  profile: {
+    name: "Adarsh",
+    role: "Full Stack Developer & ML Engineer",
+    profileImage: "/assets",
+    shortBio: "Building full-stack applications, AI/ML systems, and scalable web solutions.",
+    email: "adarshk6678@gmail.com",
+    phone: "+91 6362162926",
+    location: "Bengaluru, India",
+    resumeLink: "./adarsh-full-stack-developer_2025.pdf",
+    tagline: "Building Web & AI Experiences",
+    status: "Open to Opportunities",
+    social: {
+      github: "https://github.com/yourprofile",
+      linkedin: "https://linkedin.com/in/yourprofile",
+      leetcode: "https://leetcode.com/u/Adarsh0070/",
+      hackerrank: "https://hackerrank.com/yourprofile",
+      portfolio: "https://yourportfolio.com",
+    },
+  },
 };

@@ -1,15 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { styles } from "../../constants/styles";
 import { navLinks } from "../../constants";
 import { logo, menu, close } from "../../assets";
 import { config } from "../../constants/config";
+import ProfileModal from "../atoms/ProfileModal";
 
 const Navbar = () => {
   const [active, setActive] = useState<string | null>();
   const [toggle, setToggle] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+
+    if (profileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,7 +84,6 @@ const Navbar = () => {
             window.scrollTo(0, 0);
           }}
         >
-          <img src={logo} alt="logo" className="h-9 w-9 object-contain" />
           <p className="flex cursor-pointer text-[18px] font-bold text-white ">
             {config.html.title}
           </p>
@@ -82,6 +101,82 @@ const Navbar = () => {
             </li>
           ))}
         </ul>
+
+        <div ref={profileRef} className="relative hidden items-center sm:flex">
+          <button
+            onClick={() => setProfileOpen(!profileOpen)}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-700"
+          >
+            <img
+              src={logo}
+              alt={config.profile.name}
+              className="h-9 w-9 rounded-full object-cover"
+            />
+          </button>
+
+          {profileOpen && (
+            <div className="black-gradient absolute right-0 top-14 w-72 rounded-lg border border-gray-700 p-4">
+              <p className="mb-4 text-sm text-secondary">{config.profile.shortBio}</p>
+
+              <div className="mb-4 flex gap-3">
+                <a
+                  href={config.profile.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
+                  title="GitHub"
+                >
+                  <span className="text-xs font-bold">GH</span>
+                </a>
+                <a
+                  href={config.profile.social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
+                  title="LinkedIn"
+                >
+                  <span className="text-xs font-bold">LI</span>
+                </a>
+                <a
+                  href={config.profile.social.leetcode}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
+                  title="LeetCode"
+                >
+                  <span className="text-xs font-bold">LC</span>
+                </a>
+              </div>
+
+              <div className="space-y-2 border-t border-gray-700 pt-3">
+                <a
+                  href={`mailto:${config.profile.email}`}
+                  className="block text-sm text-secondary hover:text-white"
+                >
+                  ✉ {config.profile.email}
+                </a>
+                <button
+                  onClick={() => {
+                    setShowModal(true);
+                    setProfileOpen(false);
+                  }}
+                  className="w-full rounded bg-violet-600 px-3 py-2 text-center text-sm font-medium text-white hover:bg-violet-700"
+                >
+                  👤 View Profile
+                </button>
+                <a
+                  href={config.profile.resumeLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded bg-gray-700 px-3 py-2 text-center text-sm font-medium text-white hover:bg-gray-600"
+                >
+                  📄 Resume
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+        <ProfileModal isOpen={showModal} onClose={() => setShowModal(false)} />
 
         <div className="flex flex-1 items-center justify-end sm:hidden">
           <img

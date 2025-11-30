@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
 
@@ -22,6 +22,14 @@ const Contact = () => {
   const formRef = useRef<React.LegacyRef<HTMLFormElement> | undefined>();
   const [form, setForm] = useState(INITIAL_STATE);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (emailjsConfig.accessToken) {
+      emailjs.init(emailjsConfig.accessToken);
+    }
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | undefined
@@ -34,33 +42,47 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement> | undefined) => {
     if (e === undefined) return;
     e.preventDefault();
+
+    if (!emailjsConfig.serviceId || !emailjsConfig.templateId || !emailjsConfig.accessToken) {
+      setError("EmailJS configuration is missing. Please check your .env.local file.");
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    const templateParams = {
+      to_email: config.html.email,
+      from_name: form.name,
+      from_email: form.email,
+      message: form.message,
+      reply_to: form.email,
+    };
+
+    console.log("Sending email with params:", templateParams);
+    console.log("Service ID:", emailjsConfig.serviceId);
+    console.log("Template ID:", emailjsConfig.templateId);
 
     emailjs
       .send(
         emailjsConfig.serviceId,
         emailjsConfig.templateId,
-        {
-          form_name: form.name,
-          to_name: config.html.fullName,
-          from_email: form.email,
-          to_email: config.html.email,
-          message: form.message,
-        },
+        templateParams,
         emailjsConfig.accessToken
       )
       .then(
         () => {
           setLoading(false);
-          alert("Thank you. I will get back to you as soon as possible.");
-
+          setSuccess(true);
           setForm(INITIAL_STATE);
+          setTimeout(() => setSuccess(false), 5000);
         },
-        (error) => {
+        (error: any) => {
           setLoading(false);
-
-          console.log(error);
-          alert("Something went wrong.");
+          console.error("EmailJS Error:", error);
+          const errorMsg = error?.text || error?.message || "Failed to send message";
+          setError(`Error: ${errorMsg}`);
         }
       );
   };
@@ -74,6 +96,29 @@ const Contact = () => {
         className="bg-black-100 flex-[0.75] rounded-2xl p-8"
       >
         <Header useMotion={false} {...config.contact} />
+
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 rounded-lg bg-green-900 p-4 text-green-200"
+          >
+            <p className="font-semibold">✓ Message Sent Successfully!</p>
+            <p className="text-sm">Thank you for reaching out. I'll get back to you soon.</p>
+          </motion.div>
+        )}
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 rounded-lg bg-red-900 p-4 text-red-200"
+          >
+            <p className="font-semibold">✕ {error}</p>
+          </motion.div>
+        )}
 
         <form
           // @ts-expect-error
